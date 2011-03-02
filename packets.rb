@@ -1,78 +1,479 @@
 PACKET_DEFS = {
-  # [Packet ID, Name, ClientToServer, ServerToClient]
-  0x00 => ['NoOp', nil, nil],
-  0x01 => ['LoginRequest', {
-    version: :int,
-    username: :string,
-    password: :string,
-    map_seed: :long,
-    dimension: :byte,
-  }, {
-    entity_id: :int,
-    unknown1: :string,
-    unknown2: :string,
-    map_seed: :long,
-    dimension: :byte,
-  }],
-  0x02 => ['Handshake', {
-    username: :string,
+  0x00 => {
+    name: 'KeepAlive',
+    c2s: %w(),
+    s2c: %w(),
   },
-  {
-    connection_hash: :string,
-  }],
-  0x03 => ['ChatMessage', {
-    message: :string,
-  }, {
-    message: :string,
-  }],
-  0x04 => ['TimeUpdate'],
-  0x05 => ['EntityEquipment'],
-  0x06 => ['SpawnPosition'],
-  0x07 => ['UseEntity'],
-  0x08 => ['UpdateHealth'],
-  0x09 => ['Respawn'],
-  0x0A => ['Player'],
-  0x0B => ['PlayerPosition'],
-  0x0C => ['PlayerLook'],
-  0x0D => ['PlayerPositionAndLook'],
-  0x0E => ['PlayerDigging'],
-  0x0F => ['PlayerBlockPlacement'],
-  0x10 => ['HoldingChange'],
-  0x11 => ['UseBed'],
-  0x12 => ['Animation'],
-  0x13 => ['EntityAction'],
-  0x14 => ['NamedEntitySpawn'],
-  0x15 => ['PickupSpawn'],
-  0x16 => ['CollectItem'],
-  0x17 => ['AddObject'],
-  0x18 => ['MobSpawn'],
-  0x19 => ['EntityPainting'],
-  0x1B => ['Unknown1'],
-  0x1C => ['EntityVelocity'],
-  0x1D => ['DestroyEntity'],
-  0x1E => ['Entity'],
-  0x1F => ['EntityRelativeMove'],
-  0x20 => ['EntityLook'],
-  0x21 => ['EntityLookAndRelativeMove'],
-  0x22 => ['EntityTeleport'],
-  0x26 => ['EntityStatus'],
-  0x27 => ['AttachEntity'],
-  0x28 => ['EntityMetadata'],
-  0x32 => ['PreChunk'],
-  0x33 => ['MapChunk'],
-  0x34 => ['MultiBlockChange'],
-  0x35 => ['BlockChange'],
-  0x36 => ['PlayNoteBlock'],
-  0x3C => ['Explosion'],
-  0x64 => ['OpenWindow'],
-  0x65 => ['CloseWindow'],
-  0x66 => ['WindowClick'],
-  0x67 => ['SetSlot'],
-  0x68 => ['WindowItems'],
-  0x69 => ['UpdateProgressBar'],
-  0x6A => ['Transaction'],
-  0x82 => ['UpdateSign'],
-  0xFF => ['Kick'],
+  0x01 => {
+    name: 'LoginRequest',
+    c2s: %w(
+      version int
+      username string
+      password string
+      map_seed long
+      dimension byte
+    ),
+    s2c: %w(
+      entity_id int
+      unknown1 string
+      unknown2 string
+      map_seed long
+      dimension byte
+    )
+  },
+  0x02 => {
+    name: 'Handshake',
+    c2s: %w(username string),
+    s2c: %w(connection_hash string),
+  },
+  0x03 => {
+    name: 'Message',
+    fmt: %w(message string),
+  },
+  0x04 => {
+    name: 'TimeUpdate',
+    s2c: %w(
+      time long
+    ),
+  },
+  0x05 => {
+    name: 'EntityEquipment',
+    fmt: %w(
+      entity_id int
+      slot short
+      item_id short
+      unknown1 short
+    )
+  },
+  0x06 => {
+    name: 'SpawnPosition',
+    fmt: %w(
+      x int
+      y int
+      z int
+    )
+  },
+  0x07 => {
+    name: 'UseEntity',
+    fmt: %w(
+      entity_id int
+      target_id int
+      leftclick bool
+    )
+  },
+  0x08 => {
+    name: 'UpdateHealth',
+    s2c: %w(
+      health short
+    )
+  },
+  0x09 => {
+    name: 'Respawn',
+    fmt: [],
+  },
+  0x0a => {
+    name: 'Player',
+    c2s: %w(
+      on_ground bool
+    ),
+  },
+  0x0b => {
+    name: 'PlayerPosition',
+    c2s: %w(
+      x double
+      y double
+      stance double
+      z double
+      on_ground bool
+    )
+  },
+  0x0c => {
+    name: 'PlayerLook',
+    c2s: %w(
+      yaw float
+      pitch float
+      on_ground bool
+    )
+  },
+  0x0d => {
+    name: 'PlayerPositionAndLook',
+    c2s: %w(
+      x double
+      stance double
+      y double
+      z double
+      yaw float
+      pitch float
+      on_ground bool
+    ),
+    s2c: %w(
+      x double
+      y double
+      stance double
+      z double
+      yaw float
+      pitch float
+      on_ground bool
+    )
+  },
+  0x0e => {
+    name: 'PlayerDigging',
+    fmt: %w(
+      status byte
+      x int
+      y byte
+      z int
+      face byte
+    )
+  },
+  0x0f => {
+    name: 'PlayerBlockPlacement',
+    fmt: %w(
+      x int
+      y byte
+      z int
+      direction byte
+      bad block_or_item_amt_dmg
+    )
+      #block short
+      #amount byte
+      #damage short
+  },
+  0x10 => {
+    name: 'HoldingChange',
+    fmt: %w(slot_id short)
+  },
+  0x11 => {
+    name: 'UseBed',
+    s2c: %w(
+      entity_id int
+      unknown1 byte
+      x int
+      y byte
+      z int
+    )
+  },
+  0x12 => {
+    name: 'Animation',
+    fmt: %w(
+      entity_id int
+      animation byte
+    )
+  },
+  0x13 => {
+    name: 'PlayerCrouch',
+    fmt: %w(
+      entity_id int
+      action byte
+    )
+  },
+  0x14 => {
+    name: 'NamedEntitySpawn',
+    s2c: %w(
+      entity_id int
+      player_name string
+      x int
+      y int
+      z int
+      rotation byte
+      pitch byte
+      current_item short
+    )
+  },
+  0x15 => {
+    name: 'PickupSpawn',
+    fmt: %w(
+      entity_id int
+      item_id short
+      amount byte
+      damage short
+      x int
+      y int
+      z int
+      rotation byte
+      pitch byte
+      roll byte
+    )
+  },
+  0x16 => {
+    name: 'CollectItem',
+    fmt: %w(
+      item_id int
+      entity_id int
+    )
+  },
+  0x17 => {
+    name: 'AddObject',
+    s2c: %w(
+      entity_id int
+      type byte
+      x int
+      y int
+      z int
+    )
+  },
+  0x18 => {
+    name: 'MobSpawn',
+    s2c: %w(
+      entity_id int
+      type byte
+      x int
+      y int
+      z int
+      yaw byte
+      pitch byte
+      data MobMetadata
+    )
+  },
+  0x19 => {
+    name: 'Painting',
+    fmt: %w(
+      entity_id int
+      title string
+      x int
+      y int
+      z int
+      type int
+    )
+  },
+  0x1b => {
+    name: 'Unknown_0x1B',
+    fmt: %w(
+      unknown1 float
+      unknown2 float
+      unknown3 float
+      unknown4 float
+      unknown5 bool
+      unknown6 bool
+    )
+  },
+  0x1c => {
+    name: 'EntityVelocity',
+    fmt: %w(
+      entity_id int
+      velocity_x short
+      velocity_y short
+      velocity_z short
+    )
+  },
+  0x1d => {
+    name: 'DestroyEntity',
+    s2c: %w(
+      entity_id int
+    )
+  },
+  0x1e => {
+    name: 'Entity',
+    s2c: %w(
+      entity_id int
+    )
+  },
+  0x1f => {
+    name: 'EntityRelativeMove',
+    s2c: %w(
+      entity_id int
+      dx byte
+      dy byte
+      dz byte
+    )
+  },
+  0x20 => {
+    name: 'EntityLook',
+    s2c: %w(
+      entity_id int
+      yaw byte
+      pitch byte
+    )
+  },
+  0x21 => {
+    name: 'EntityLookAndRelativeMove',
+    s2c: %w(
+      entity_id int
+      dx byte
+      dy byte
+      dz byte
+      yaw byte
+      pitch byte
+    )
+  },
+  0x22 => {
+    name: 'EntityTeleport',
+    s2c: %w(
+      entity_id int
+      x int
+      y int
+      z int
+      yaw byte
+      pitch byte
+    )
+  },
+  0x26 => {
+    name: 'EntityStatus',
+    s2c: %w(
+      entity_id int
+      status byte
+    )
+  },
+  0x27 => {
+    name: 'AttachEntity',
+    fmt: %w(
+      entity_id int
+      target_id int
+    )
+  },
+  0x28 => {
+    name: 'EntityMetadata',
+    fmt: %w(
+      entity_id int
+      data MobMetadata
+    )
+  },
+  0x32 => {
+    name: 'PreChunk',
+    s2c: %w(
+      x int
+      z int
+      mode bool
+    )
+  },
+  0x33 => {
+    name: 'MapChunk',
+    s2c: %w(
+      x int
+      y short
+      z int
+      size_x byte
+      size_y byte
+      size_z byte
+      compressed_size int
+      compressed_data byte[]
+    ),
+    special: true
+  },
+  0x34 => {
+    name: 'MultiBlockChange',
+    fmt: %w(
+      chunk_x int
+      chunk_z int
+      size short
+      coords short[]
+      types byte[]
+      metadata byte[]
+    ),
+    special: true
+  },
+  0x35 => {
+    name: 'BlockChange',
+    fmt: %w(
+      x int
+      y byte
+      z int
+      type byte
+      metadata byte
+    )
+  },
+  0x36 => {
+    name: 'PlayNoteBlock',
+    s2c: %w(
+      x int
+      y short
+      z int
+      type byte
+      pitch byte
+    )
+  },
+  0x3c => {
+    name: 'Explosion',
+    fmt: %w(
+      x double
+      y double
+      z double
+      unknown float
+      count int
+      records ExplosionRecord[]
+    ),
+    special: true
+  },
+  0x40 => {
+    name: 'Unknown_0x40',
+    fmt: %w(
+      unknown1 int
+      unknown2 int
+    )
+  },
+  0x64 => {
+    name: 'OpenWindow',
+    fmt: %w(
+      window_id byte
+      inventory_type byte
+      title string
+      num_slots byte
+    )
+  },
+  0x65 => {
+    name: 'CloseWindow',
+    fmt: %w(
+      window_id byte
+    )
+  },
+  0x66 => {
+    name: 'WindowClick',
+    fmt: %w(
+      window_id byte
+      slot short
+      rightclick bool
+      transaction_id short
+      item Item
+    )
+  },
+  0x67 => {
+    name: 'SetSlot',
+    fmt: %w(
+      window_id byte
+      slot short
+      item Item
+    ),
+  },
+  0x68 => {
+    name: 'WindowItems',
+    fmt: %w(
+      window_id byte
+      count short
+      payload WindowItemsPayload
+    )
+  },
+  0x69 => {
+    name: 'UpdateProgressBar',
+    s2c: %w(
+      window_id byte
+      progressbar_id short
+      value short
+    )
+  },
+  0x6a => {
+    name: 'Transaction',
+    fmt: %w(
+      window_id byte
+      transaction_id short
+      accepted bool
+    )
+  },
+  0x82 => {
+    name: 'UpdateSign',
+    fmt: %w(
+      x int
+      y short
+      z int
+      text1 string
+      text2 string
+      text3 string
+      text4 string
+    )
+  },
+  0xff => {
+    name: 'Disconnect',
+    fmt: %w(
+      reason string
+    )
+  }
 }
-
-PACKET_DEFS_REV = Hash[PACKET_DEFS.map{ |k,v| [v[0], k] }]

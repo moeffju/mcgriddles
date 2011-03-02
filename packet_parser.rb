@@ -1,516 +1,119 @@
-PACKET_DEFS = {
-  0x00 => {
-    name: 'KeepAlive',
-    c2s: %w(),
-    s2c: %w(),
-  },
-  0x01 => {
-    name: 'LoginRequest',
-    c2s: %w(
-      version int
-      username string
-      password string
-      map_seed long
-      dimension byte
-    ),
-    s2c: %w(
-      entity_id int
-      unknown1 string
-      unknown2 string
-      map_seed long
-      dimension byte
-    )
-  },
-  0x02 => {
-    name: 'Handshake',
-    c2s: %w(username string),
-    s2c: %w(connection_hash string),
-  },
-  0x03 => {
-    name: 'Message',
-    fmt: %w(message string),
-  },
-  0x04 => {
-    name: 'TimeUpdate',
-    s2c: %w(time long),
-  },
-  0x05 => {
-    name: 'EntityEquipment',
-    fmt: %w(
-      entity_id int
-      slot short
-      item_id short
-      unknown1 short
-    )
-  },
-  0x06 => {
-    name: 'UseEntity',
-    fmt: %w(
-      entity_id int
-      target_id int
-      leftclick bool
-    )
-  },
-  0x08 => {
-    name: 'UpdateHealth',
-    s2c: %w(
-      health short
-    )
-  },
-  0x09 => {
-    name: 'Respawn',
-    fmt: [],
-  },
-  0x0a => {
-    name: 'Player',
-    c2s: %w(
-      on_ground bool
-    ),
-  },
-  0x0b => {
-    name: 'PlayerPosition',
-    c2s: %w(
-      x double
-      y double
-      stance double
-      z double
-      on_ground bool
-    )
-  },
-  0x0c => {
-    name: 'PlayerLook',
-    c2s: %w(
-      yaw float
-      pitch float
-      on_ground bool
-    )
-  },
-  0x0d => {
-    name: 'PlayerPositionAndLook',
-    c2s: %w(
-      x double
-      stance double
-      y double
-      z double
-      yaw float
-      pitch float
-      on_ground bool
-    ),
-    s2c: %w(
-      x double
-      y double
-      stance double
-      z double
-      yaw float
-      pitch float
-      on_ground bool
-    )
-  },
-  0x0e => {
-    name: 'PlayerDigging',
-    fmt: %w(
-      status byte
-      x int
-      y byte
-      z int
-      face byte
-    )
-  },
-  0x0f => {
-    name: 'PlayerBlockPlacement',
-    fmt: %w(
-      x int
-      y byte
-      z int
-      direction byte
-      bad block_or_item_amt_dmg
-    )
-      #block short
-      #amount byte
-      #damage short
-  },
-  0x10 => {
-    name: 'HoldingChange',
-    fmt: %w(slot_id short)
-  },
-  0x11 => {
-    name: 'UseBed',
-    s2c: %w(
-      entity_id int
-      unknown1 byte
-      x int
-      y byte
-      z int
-    )
-  },
-  0x12 => {
-    name: 'Animation',
-    fmt: %w(
-      entity_id int
-      animation byte
-    )
-  },
-  0x13 => {
-    name: 'PlayerCrouch',
-    fmt: %w(
-      entity_id int
-      action byte
-    )
-  },
-  0x14 => {
-    name: 'NamedEntitySpawn',
-    s2c: %w(
-      entity_id int
-      player_name string
-      x int
-      y int
-      z int
-      rotation byte
-      pitch byte
-      current_item short
-    )
-  },
-  0x15 => {
-    name: 'PickupSpawn',
-    fmt: %w(
-      entity_id int
-      item_id short
-      amount byte
-      damage short
-      x int
-      y int
-      z int
-      rotation byte
-      pitch byte
-      roll byte
-    )
-  },
-  0x16 => {
-    name: 'CollectItem',
-    fmt: %w(
-      item_id int
-      entity_id int
-    )
-  },
-  0x17 => {
-    name: 'AddObject',
-    s2c: %w(
-      entity_id int
-      type byte
-      x int
-      y int
-      z int
-    )
-  },
-  0x18 => {
-    name: 'MobSpawn',
-    s2c: %w(
-      entity_id int
-      type byte
-      x int
-      y int
-      z int
-      yaw byte
-      pitch byte
-      data MobMetadata
-    )
-  },
-  0x19 => {
-    name: 'Painting',
-    fmt: %w(
-      entity_id int
-      title string
-      x int
-      y int
-      z int
-      type int
-    )
-  },
-  0x1b => {
-    name: 'Unknown_0x1B',
-    fmt: %w(
-      unknown1 float
-      unknown2 float
-      unknown3 float
-      unknown4 float
-      unknown5 bool
-      unknown6 bool
-    )
-  },
-  0x1c => {
-    name: 'EntityVelocity',
-    fmt: %w(
-      entity_id int
-      velocity_x short
-      velocity_y short
-      velocity_z short
-    )
-  },
-  0x1d => {
-    name: 'DestroyEntity',
-    s2c: %w(
-      entity_id int
-    )
-  },
-  0x1e => {
-    name: 'Entity',
-    s2c: %w(
-      entity_id int
-    )
-  },
-  0x1f => {
-    name: 'EntityRelativeMove',
-    s2c: %w(
-      entity_id int
-      dx byte
-      dy byte
-      dz byte
-    )
-  },
-  0x20 => {
-    name: 'EntityLook',
-    s2c: %w(
-      entity_id int
-      yaw byte
-      pitch byte
-    )
-  },
-  0x21 => {
-    name: 'EntityLookAndRelativeMove',
-    s2c: %w(
-      entity_id int
-      dx byte
-      dy byte
-      dz byte
-      yaw byte
-      pitch byte
-    )
-  },
-  0x22 => {
-    name: 'EntityTeleport',
-    s2c: %w(
-      entity_id int
-      x int
-      y int
-      z int
-      yaw byte
-      pitch byte
-    )
-  },
-  0x26 => {
-    name: 'EntityStatus',
-    s2c: %w(
-      entity_id int
-      status byte
-    )
-  },
-  0x27 => {
-    name: 'AttachEntity',
-    fmt: %w(
-      entity_id int
-      target_id int
-    )
-  },
-  0x28 => {
-    name: 'EntityMetadata',
-    fmt: %w(
-      entity_id int
-      data MobMetadata
-    )
-  },
-  0x32 => {
-    name: 'PreChunk',
-    s2c: %w(
-      x int
-      z int
-      mode bool
-    )
-  },
-  0x33 => {
-    name: 'MapChunk',
-    s2c: %w(
-      x int
-      y short
-      z int
-      size_x byte
-      size_y byte
-      size_z byte
-      compressed_size int
-      compressed_data byte[]
-    ),
-    special: true
-  },
-  0x34 => {
-    name: 'MultiBlockChange',
-    fmt: %w(
-      chunk_x int
-      chunk_z int
-      size short
-      coords short[]
-      types byte[]
-      metadata byte[]
-    ),
-    special: true
-  },
-  0x35 => {
-    name: 'BlockChange',
-    fmt: %w(
-      x int
-      y byte
-      z int
-      type byte
-      metadata byte
-    )
-  },
-  0x36 => {
-    name: 'PlayNoteBlock',
-    s2c: %w(
-      x int
-      y short
-      z int
-      type byte
-      pitch byte
-    )
-  },
-  0x3c => {
-    name: 'Explosion',
-    fmt: %w(
-      x double
-      y double
-      z double
-      unknown float
-      count int
-      records ExplosionRecord[]
-    ),
-    special: true
-  },
-  0x64 => {
-    name: 'OpenWindow',
-    fmt: %w(
-      window_id byte
-      inventory_type byte
-      title string
-      num_slots byte
-    )
-  },
-  0x65 => {
-    name: 'CloseWindow',
-    fmt: %w(
-      window_id byte
-    )
-  },
-  0x66 => {
-    name: 'WindowClick',
-    fmt: %w(
-      window_id byte
-      slot short
-      rightclick bool
-      transaction_id short
-      item_id short
-      count byte
-      uses short
-    )
-  },
-  0x67 => {
-    name: 'SetSlot',
-    fmt: %w(
-      window_id byte
-      slot short
-      item_id short
-      count byte
-      uses short
-    ),
-    special: true
-  },
-  0x68 => {
-    name: 'WindowItems',
-    s2c: %w(
-      window_id byte
-      count short
-      payload WindowItemsPayload
-    )
-  },
-  0x69 => {
-    name: 'UpdateProgressBar',
-    s2c: %w(
-      window_id byte
-      progressbar_id short
-      value short
-    )
-  },
-  0x6a => {
-    name: 'Transaction',
-    fmt: %w(
-      window_id byte
-      transaction_id short
-      accepted bool
-    )
-  },
-  0x82 => {
-    name: 'UpdateSign',
-    fmt: %w(
-      x int
-      y short
-      z int
-      text1 string
-      text2 string
-      text3 string
-      text4 string
-    )
-  },
-  0xff => {
-    name: 'Disconnect',
-    fmt: %w(
-      reason string
-    )
-  }
-}
+#!/usr/bin/env ruby
+
+require './packets'
 
 class PacketParser
   @parsing_failed = false
   
   def parse(pkt, direction)
     return if @parsing_failed
+    return false if pkt.nil? || pkt.length == 0
     packet = pkt.bytes.to_a
     packet_id = packet.slice!(0, 1).first
     if PACKET_DEFS.key? packet_id
       pd = PACKET_DEFS[packet_id]
       fmt = pd[direction] || pd[:fmt]
       unless fmt
-        $stderr.puts "No format available for #{pd[:name]} (#{direction})"
         @parsing_failed = true
-        return
+        raise Exception.new("Format not known for #{pd[:name]} / #{direction}")
       end
-      data = {}
-      fmt.each_slice(2) do |k, type|
-        data[k] = case type
-          when 'byte'
-            packet.slice!(0, 1).first
-          when 'short'
-            packet.slice!(0, 2).pack('c*').unpack('n')
-          when 'int'
-            packet.slice!(0, 4).pack('c*').unpack('N')
-          when 'long'
-            packet.slice!(0, 8).pack('c*').unpack('q')
-          when 'float'
-            packet.slice!(0, 4).pack('c*').unpack('g')
-          when 'double'
-            packet.slice!(0, 8).pack('c*').unpack('G')
-          when 'string'
-            len = packet.slice!(0, 2).pack('c*').unpack('n')
-            str = packet.slice!(0, len).pack('c*')
-            str
-          when 'bool'
-            packet.slice!(0, 1).first == 1
-          end
+      data = { _name: pd[:name], _direction: direction }
+      finished = true
+      begin
+        fmt.each_slice(2) do |k, type|
+          data[k] = case type
+            # primitives
+            when 'byte'
+              raise if packet.length < 1
+              packet.slice!(0, 1).first
+            when 'short'
+              raise if packet.length < 2
+              bin(packet.slice!(0, 2).pack('c*'))
+            when 'int'
+              raise if packet.length < 4
+              bin(packet.slice!(0, 4).pack('c*'))
+            when 'long'
+              raise if packet.length < 8
+              bin(packet.slice!(0, 8).pack('c*'))
+            when 'float'
+              raise if packet.length < 4
+              packet.slice!(0, 4).pack('c*').unpack('g').first
+            when 'double'
+              raise if packet.length < 8
+              packet.slice!(0, 8).pack('c*').unpack('G').first
+            when 'string'
+              raise if packet.length < 2
+              len = bin(packet.slice!(0, 2).pack('c*'))
+              str = ''
+              str = packet.slice!(0, len).pack('c*') if len && len > 0
+              str
+            when 'bool'
+              raise if packet.length < 1
+              packet.slice!(0, 1).first == 1
+            # special types
+            when 'Item'
+              raise if packet.length < 1
+              item_id = bin(packet.slice!(0, 2).pack('c*'))
+              if item_id != -1
+                count = packet.slice!(0, 1).first
+                uses = bin(packet.slice!(0, 2).pack('c*'))
+                { item_id: item_id, count: count, uses: uses }
+              else
+                nil
+              end
+            when 'MobMetadata'
+              idx = packet.find_index(0x7f)
+              packet.slice!(0, idx + 1)
+            when 'WindowItemsPayload'
+              inventory = Array.new(data['count'])
+              Range.new(0, data['count'], true).each do |slot|
+                item_id = bin(packet.slice!(0, 2).pack('c*'))
+                if item_id != -1
+                  raise if packet.length < 3
+                  count = packet.slice!(0, 1).first
+                  uses = bin(packet.slice!(0, 2).pack('c*'))
+                  inventory[slot] = { item_id: item_id, count: count, uses: uses }
+                end
+              end
+              inventory
+            # Unhandled types
+            else
+              raise Exception.new("Unhandled type: #{type}")
+            end
+        end
+      rescue
+        return false
       end
-      $stderr.puts data.inspect
+      return { data: data, packet: packet.pack('c*') }
     else
-      $stderr.puts "Unknown packet: %#x" % b[0]
+      $stderr.puts "Unknown packet: %#x" % packet_id
+      $stderr.puts pkt.hexdump
       @parsing_failed = true
       return
     end
   end
+  
+private
+
+  def bin(c)
+    c.unpack("cC*").inject(0) { |res, b| (res << 8) | b } 
+  end
 end
 
-pkt = [0x02, 0x00, 0x07, 0x6d, 0x6f, 0x65, 0x66, 0x66, 0x6a, 0x75].pack('c*')
+=begin
+pkts = [
+  { direction: :c2s, data: [0x02, 0x00, 0x07, 0x6d, 0x6f, 0x65, 0x66, 0x66, 0x6a, 0x75] },
+  { direction: :s2c, data: [0x02, 0x00, 0x10, 0x66, 0x65, 0x38, 0x65, 0x35, 0x33, 0x32, 0x64, 0x32, 0x37, 0x35, 0x34, 0x38, 0x35, 0x33, 0x37] },
+  { direction: :c2s, data: [0x01, 0x00, 0x00, 0x00, 0x09, 0x00, 0x07, 0x6d, 0x6f, 0x65, 0x66, 0x66, 0x6a, 0x75, 0x00, 0x08, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00] },
+  { direction: :s2c, data: [0x01, 0x00, 0x27, 0xab, 0x74, 0x00, 0x00, 0x00, 0x00, 0xe4, 0x00, 0x26, 0xaa, 0xc1, 0x65, 0xf0, 0x60, 0x00] },
+  { direction: :s2c, data: [0x06, 0xff, 0xff, 0xff, 0xaa, 0x00, 0x00, 0x00, 0x40, 0xff, 0xff, 0xfe, 0xba] },
+  { direction: :s2c, data: [0x03, 0x00, 0x36, 0x47, 0x65, 0x72, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x74, 0x65, 0x20, 0x4d, 0x61, 0x70, 0x73, 0x20, 0x75, 0x6e, 0x74, 0x65, 0x72, 0x3a, 0x20, 0x68, 0x74, 0x74, 0x70, 0x3a, 0x2f, 0x2f, 0x6d, 0x69, 0x6e, 0x65, 0x63, 0x72, 0x61, 0x66, 0x74, 0x2e, 0x6c, 0x6f, 0x6c, 0x63, 0x61, 0x6c, 0x68, 0x6f, 0x73, 0x74, 0x2e, 0x64, 0x65, 0x2f] },
+  { direction: :s2c, data: [0x03, 0x00, 0x00] },
+  { direction: :s2c, data: [0x32, 0xff, 0xff, 0xff, 0xea, 0x00, 0x00, 0x00, 0x05, 0x01] },
+]
+
+pp = PacketParser.new
+pkts.each do |pkt|
+  pp.parse(pkt[:data].pack('c*'), pkt[:direction])
+end
+=end
