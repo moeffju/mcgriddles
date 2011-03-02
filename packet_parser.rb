@@ -78,7 +78,7 @@ class PacketParser
               inventory
             # Unhandled types
             else
-              raise Exception.new("Unhandled type: #{type}")
+              raise Exception.new("Unhandled type in #{pd[:name]}: #{type}")
             end
         end
       rescue
