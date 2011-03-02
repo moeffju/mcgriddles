@@ -127,17 +127,14 @@ PACKET_DEFS = {
     )
   },
   0x0f => {
-    name: 'PlayerBlockPlacement',
+    name: 'PlayerItemPlacement',
     fmt: %w(
       x int
       y byte
       z int
       direction byte
-      bad block_or_item_amt_dmg
+      item Item
     )
-      #block short
-      #amount byte
-      #damage short
   },
   0x10 => {
     name: 'HoldingChange',
@@ -345,8 +342,7 @@ PACKET_DEFS = {
       size_x byte
       size_y byte
       size_z byte
-      compressed_size int
-      compressed_data byte[]
+      map_chunk MapChunk
     ),
     special: true
   },

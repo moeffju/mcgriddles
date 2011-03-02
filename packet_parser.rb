@@ -17,7 +17,7 @@ class PacketParser
         @parsing_failed = true
         raise Exception.new("Format not known for #{pd[:name]} / #{direction}")
       end
-      data = { _name: pd[:name], _direction: direction }
+      data = {}
       finished = true
       begin
         fmt.each_slice(2) do |k, type|
@@ -76,15 +76,23 @@ class PacketParser
                 end
               end
               inventory
+            when 'MapChunk'
+              raise if packet.length < 4
+              size = bin(packet.slice!(0, 4).pack('c*'))
+              raise if packet.length < size
+              buf = packet.slice!(0, size).pack('c*')
+              map_chunk = Zlib::Inflate.inflate buf
+              map_chunk
+              
             # Unhandled types
             else
               raise Exception.new("Unhandled type in #{pd[:name]}: #{type}")
             end
         end
-      rescue
+      rescue Exception => e
         return false
       end
-      return { data: data, packet: packet.pack('c*') }
+      return { name: pd[:name], direction: direction, data: data, packet: packet.pack('c*') }
     else
       $stderr.puts "Unknown packet: %#x" % packet_id
       $stderr.puts pkt.hexdump

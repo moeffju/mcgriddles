@@ -24,31 +24,32 @@ class String
 end
 
 pp = PacketParser.new
-packet = ''
+ipacket = opacket = ''
+hide_packets = /^(?:Entity|Map|PreChunk|Player$|PlayerPosition|PlayerLook)/
 
 Proxy.start(:host => "127.0.0.1", :port => 25565, :debug => false) do |conn|
   conn.server :srv, :host => "minecraft.lolcalhost.de", :port => 25565
   
   # modify / process request stream
   conn.on_data do |data|
-    puts ">>>> #{Time.now.strftime('%Y-%m-%d %H:%M:%S.%6N')} - #{data.bytesize} bytes"
+    #puts ">>>> #{Time.now.strftime('%Y-%m-%d %H:%M:%S.%6N')} - #{data.bytesize} bytes"
     #puts data.hexdump
-    packet += data
-    while parsed = pp.parse(packet, :c2s) do
-      puts parsed[:data].inspect
-      packet = parsed[:packet] || ''
+    opacket += data
+    while parsed = pp.parse(opacket, :c2s) do
+      puts "#{Time.now.strftime('%H:%M:%S.%6N')}  --> #{parsed[:name]} #{parsed[:data].inspect}" unless parsed[:name] =~ hide_packets
+      opacket = parsed[:packet] || ''
     end
     data
   end
   
   # modify / process response stream
   conn.on_response do |backend, data|
-    puts "<<<< #{Time.now.strftime('%Y-%m-%d %H:%M:%S.%6N')} - #{data.bytesize} bytes"
+    #puts "<<<< #{Time.now.strftime('%Y-%m-%d %H:%M:%S.%6N')} - #{data.bytesize} bytes"
     #puts data.hexdump
-    packet += data
-    while parsed = pp.parse(packet, :s2c) do
-      puts parsed[:data].inspect
-      packet = parsed[:packet] || ''
+    ipacket += data
+    while parsed = pp.parse(ipacket, :s2c) do
+      puts "#{Time.now.strftime('%H:%M:%S.%6N')} <--  #{parsed[:name]} #{parsed[:data].inspect}" unless parsed[:name] =~ hide_packets
+      ipacket = parsed[:packet] || ''
     end
     data
   end
