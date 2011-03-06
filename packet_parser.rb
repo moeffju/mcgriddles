@@ -2,102 +2,105 @@
 
 require './packets'
 
+class String
+  def grab!(n)
+    raise if n > self.length
+    s = self[0, n]
+    self.replace self[n..-1]
+    s
+  end
+end
+
 class PacketParser
-  @parsing_failed = false
+  def initialize
+    @parsing_failed = false
+  end
   
   def parse(pkt, direction)
     return if @parsing_failed
     return false if pkt.nil? || pkt.length == 0
-    packet = pkt.bytes.to_a
-    packet_id = packet.slice!(0, 1).first
-    if PACKET_DEFS.key? packet_id
-      pd = PACKET_DEFS[packet_id]
-      fmt = pd[direction] || pd[:fmt]
-      unless fmt
-        @parsing_failed = true
-        raise Exception.new("Format not known for #{pd[:name]} / #{direction}")
-      end
-      data = {}
-      finished = true
-      begin
+    packet = pkt
+    begin
+      packet_id = packet.grab!(1).ord
+      $stderr.puts "packet_id %#2x" % packet_id
+      $stderr.puts "packet:\n#{packet.hexdump}\n_END_"
+      if PACKET_DEFS.key? packet_id
+        pd = PACKET_DEFS[packet_id]
+        fmt = pd[direction] || pd[:fmt]
+        unless fmt
+          @parsing_failed = true
+          raise Exception.new("Format not known for #{pd[:name]} (#{direction.to_s})")
+        end
+        data = {}
         fmt.each_slice(2) do |k, type|
           data[k] = case type
             # primitives
             when 'byte'
-              raise if packet.length < 1
-              packet.slice!(0, 1).first
+              packet.grab!(1).ord
             when 'short'
-              raise if packet.length < 2
-              bin(packet.slice!(0, 2).pack('c*'))
+              bin(packet.grab!(2))
             when 'int'
-              raise if packet.length < 4
-              bin(packet.slice!(0, 4).pack('c*'))
+              bin(packet.grab!(4))
             when 'long'
-              raise if packet.length < 8
-              bin(packet.slice!(0, 8).pack('c*'))
+              bin(packet.grab!(8))
             when 'float'
-              raise if packet.length < 4
-              packet.slice!(0, 4).pack('c*').unpack('g').first
+              packet.grab!(4).unpack('g').first
             when 'double'
-              raise if packet.length < 8
-              packet.slice!(0, 8).pack('c*').unpack('G').first
+              packet.grab!(8).unpack('G').first
             when 'string'
-              raise if packet.length < 2
-              len = bin(packet.slice!(0, 2).pack('c*'))
+              len = bin(packet.grab!(2))
               str = ''
-              str = packet.slice!(0, len).pack('c*') if len && len > 0
+              str = packet.grab!(len) if len && len > 0
               str
             when 'bool'
-              raise if packet.length < 1
-              packet.slice!(0, 1).first == 1
+              packet.grab!(1).first == 1
             # special types
             when 'Item'
-              raise if packet.length < 1
-              item_id = bin(packet.slice!(0, 2).pack('c*'))
+              item_id = bin(packet.grab!(2))
               if item_id != -1
-                count = packet.slice!(0, 1).first
-                uses = bin(packet.slice!(0, 2).pack('c*'))
+                count = packet.grab!(1).first
+                uses = bin(packet.grab!(2))
                 { item_id: item_id, count: count, uses: uses }
               else
                 nil
               end
             when 'MobMetadata'
               idx = packet.find_index(0x7f)
-              packet.slice!(0, idx + 1)
+              packet.grab!(idx + 1)
             when 'WindowItemsPayload'
               inventory = Array.new(data['count'])
               Range.new(0, data['count'], true).each do |slot|
-                item_id = bin(packet.slice!(0, 2).pack('c*'))
+                item_id = bin(packet.grab!(2))
                 if item_id != -1
                   raise if packet.length < 3
-                  count = packet.slice!(0, 1).first
-                  uses = bin(packet.slice!(0, 2).pack('c*'))
+                  count = packet.grab!(1).first
+                  uses = bin(packet.grab!(2))
                   inventory[slot] = { item_id: item_id, count: count, uses: uses }
                 end
               end
               inventory
             when 'MapChunk'
-              raise if packet.length < 4
-              size = bin(packet.slice!(0, 4).pack('c*'))
-              raise if packet.length < size
-              buf = packet.slice!(0, size).pack('c*')
+              size = bin(packet.grab!(4))
+              buf = packet.grab!(size)
               map_chunk = Zlib::Inflate.inflate buf
               map_chunk
-              
+            
             # Unhandled types
             else
               raise Exception.new("Unhandled type in #{pd[:name]}: #{type}")
             end
+          $stderr.puts [k,type,data].inspect
         end
-      rescue Exception => e
-        return false
+        return { name: pd[:name], direction: direction, data: data, packet: pkt }
+      else
+        $stderr.puts "Unknown packet: %#x" % packet_id
+        $stderr.puts pkt.hexdump
+        @parsing_failed = true
+        return
       end
-      return { name: pd[:name], direction: direction, data: data, packet: packet.pack('c*') }
-    else
-      $stderr.puts "Unknown packet: %#x" % packet_id
-      $stderr.puts pkt.hexdump
-      @parsing_failed = true
-      return
+    rescue Exception => e
+      $stderr.puts e.inspect
+      return false
     end
   end
   

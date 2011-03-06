@@ -36,7 +36,7 @@ Proxy.start(:host => "127.0.0.1", :port => 25565, :debug => false) do |conn|
     #puts data.hexdump
     opacket += data
     while parsed = pp.parse(opacket, :c2s) do
-      puts "#{Time.now.strftime('%H:%M:%S.%6N')}  --> #{parsed[:name]} #{parsed[:data].inspect}" unless parsed[:name] =~ hide_packets
+      puts "#{Time.now.strftime('%H:%M:%S.%6N')}  --> #{parsed[:name]} #{parsed[:data].inspect}" #unless parsed[:name] =~ hide_packets
       opacket = parsed[:packet] || ''
     end
     data
@@ -48,7 +48,7 @@ Proxy.start(:host => "127.0.0.1", :port => 25565, :debug => false) do |conn|
     #puts data.hexdump
     ipacket += data
     while parsed = pp.parse(ipacket, :s2c) do
-      puts "#{Time.now.strftime('%H:%M:%S.%6N')} <--  #{parsed[:name]} #{parsed[:data].inspect}" unless parsed[:name] =~ hide_packets
+      puts "#{Time.now.strftime('%H:%M:%S.%6N')} <--  #{parsed[:name]} #{parsed[:data].inspect}" #unless parsed[:name] =~ hide_packets
       ipacket = parsed[:packet] || ''
     end
     data
