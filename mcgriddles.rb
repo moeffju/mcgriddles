@@ -28,7 +28,7 @@ ipacket = opacket = ''
 hide_packets = /^(?:Entity|Map|PreChunk|Player$|PlayerPosition|PlayerLook)/
 
 Proxy.start(:host => "127.0.0.1", :port => 25565, :debug => false) do |conn|
-  conn.server :srv, :host => "minecraft.lolcalhost.de", :port => 25565
+  conn.server :srv, :host => ARGV.shift, :port => (ARGV.shift || 25565)
   
   # modify / process request stream
   conn.on_data do |data|
